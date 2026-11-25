@@ -91,6 +91,7 @@ export async function POST(request: Request) {
   });
   const reference = `KGF-${new Date().toISOString().slice(0, 7).replace("-", "")}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   let attachmentPath: string | null = null;
+  let inquirySaved = false;
 
   try {
     if (attachment instanceof File && attachment.size > 0) {
@@ -119,6 +120,7 @@ export async function POST(request: Request) {
       status: "new",
     });
     if (insertError) throw new Error("We could not save your inquiry. Please try again.");
+    inquirySaved = true;
 
     const summary = [
       `Reference: ${reference}`,
@@ -166,12 +168,14 @@ export async function POST(request: Request) {
 
     return Response.json({ reference }, { status: 201 });
   } catch (error) {
-    if (attachmentPath) {
+    if (attachmentPath && !inquirySaved) {
       await supabase.storage.from("inquiry-attachments").remove([attachmentPath]).catch(() => undefined);
     }
     console.error("Inquiry submission failed", error);
     return Response.json({
-      error: error instanceof Error ? error.message : "We could not submit your inquiry. Please try again.",
-    }, { status: 500 });
+      error: inquirySaved
+        ? `Your inquiry was saved but could not be fully processed. Please call us and share reference ${reference}.`
+        : error instanceof Error ? error.message : "We could not submit your inquiry. Please try again.",
+    }, { status: inquirySaved ? 502 : 500 });
   }
 }
