@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Krushi Global Foods and Spices
 
-## Getting Started
+A responsive Next.js App Router website and business inquiry experience for Krushi Global Foods and Spices.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The public website works without credentials. Copy the Supabase and Resend values into `.env.local` to enable quote/contact submissions and the admin dashboard. Never expose the Supabase service-role key in a `NEXT_PUBLIC_` variable or commit `.env.local`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Inquiry setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a Supabase project and run `supabase/migrations/20261125000000_create_inquiries.sql` in its SQL editor.
+2. Set `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the server environment. The service-role key is used only by the inquiry API routes.
+3. Configure a Resend API key and a verified sender address as `RESEND_API_KEY` and `RESEND_FROM_EMAIL`. Set `INQUIRY_TO_EMAIL` to the address that should receive leads.
+4. Submit a test quote and contact message. The APIs return a success reference only after storage and both email requests succeed. Missing configuration returns an error, never a false success.
 
-## Learn More
+Optional RFQ attachments are limited to PDF, JPG and PNG files up to 5 MB and are stored in the private `inquiry-attachments` bucket created by the migration.
 
-To learn more about Next.js, take a look at the following resources:
+## Admin access
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The `/admin` page uses Supabase Auth with the public anon key and does not contain a service key. Create the administrator account through Supabase Auth, then set its trusted `app_metadata.role` to `admin` using the Supabase dashboard or a secure server-side admin process. Never set admin privileges through user-editable metadata. Inquiry reads, status updates and private attachment access are protected by the migration's row-level security policies. CSV export includes the currently filtered inquiries.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Product and imagery notes
 
-## Deploy on Vercel
+The product catalogue is based on the product names and categories supplied for this project. Product claims, specifications, certification marks, prices, shelf life and availability are intentionally not invented; confirm product-specific details with the company before publication. No company brochure PDF was supplied, so the catalogue page offers a request path rather than a fabricated download.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Photography currently uses Unsplash image URLs as editorial placeholders. Replace them with company-owned or properly licensed, approved product and facility photographs before launch. The addresses and contact details displayed on the site are the details provided for this project.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Validation
+
+```bash
+npm run lint
+npm run build
+```
